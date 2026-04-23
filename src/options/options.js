@@ -147,7 +147,7 @@ function saveLinkPatterns() {
     // Validate RegEx.
     try {
       new RegExp(document.getElementById("pattern").value);
-    } catch (_syntaxError) {
+    } catch (SyntaxError) {
       setLinkPatternError(
         "Invalid RegEx pattern! - Great work! That's difficult to do! :D"
       );
@@ -280,7 +280,7 @@ function updateLinkPattern() {
       // Validate RegEx.
       try {
         new RegExp(document.getElementById("pattern").value);
-      } catch (_syntaxError) {
+      } catch (SyntaxError) {
         setLinkPatternError(
           "Invalid RegEx pattern! - Great work! That's difficult to do! :D"
         );
@@ -365,14 +365,7 @@ function importLinkPatternsJSON() {
   fileReader.readAsText(file, "UTF-8");
   fileReader.onload = function () {
     const fileContent = fileReader.result;
-    let newOptions;
-    try {
-      newOptions = JSON.parse(fileContent);
-    } catch (_err) {
-      console.error("Invalid JSON file");
-      setLinkPatternError("Invalid JSON file format");
-      return;
-    }
+    const newOptions = JSON.parse(fileContent);
     const overwrite =
       document.getElementById("link-patterns-import-type").value == "overwrite"
         ? true
@@ -399,7 +392,7 @@ function importLinkPatternsJSON() {
       // Validate RegEx.
       try {
         new RegExp(option.pattern);
-      } catch (_syntaxError) {
+      } catch (SyntaxError) {
         console.error("Invalid JSON data (bad pattern)");
         return;
       }
@@ -442,6 +435,8 @@ function saveGlobalOptions() {
 
     data.optionsGlobal.wrapLists =
       document.getElementById("wrap-lists").checked;
+    data.optionsGlobal.backgroundProcessing =
+      document.getElementById("background-processing").checked;
     data.optionsGlobal.includeAttachments = document.getElementById(
       "include-attachments"
     ).checked;
@@ -466,6 +461,8 @@ function loadGlobalOptions() {
     }
     document.getElementById("wrap-lists").checked =
       data.optionsGlobal.wrapLists;
+    document.getElementById("background-processing").checked =
+      data.optionsGlobal.backgroundProcessing || false;
     document.getElementById("include-attachments").checked =
       data.optionsGlobal.includeAttachments;
     document.getElementById("include-images").checked =

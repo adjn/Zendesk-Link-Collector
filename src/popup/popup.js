@@ -802,7 +802,7 @@ document.addEventListener("DOMContentLoaded", () => {
   gearVersion.textContent = `v${version}`;
   gearVersion.setAttribute(
     "href",
-    `https://github.com/bagtoad/zendesk-link-collector/releases/tag/v${version}`
+    `https://github.com/bagtoad/zendesk-link-collector/releases/latest`
   );
 
   // Event listener to copy summary to clipboard when summary button is clicked.
