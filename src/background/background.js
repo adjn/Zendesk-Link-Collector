@@ -226,6 +226,8 @@ async function filterTicket() {
         console.error(`Invalid regex in filter "${filter.title}":`, filter.pattern);
         return;
       }
+      // Skip links pointing to the currently open ticket.
+      if (link.href.includes(`/tickets/${ticketID}`)) return;
       if (re.test(link.href)) {
         const link2Push = Object.assign({}, link);
         link2Push.summaryType =
