@@ -434,6 +434,32 @@ browser.runtime.onInstalled.addListener((data) => {
     //   });
     // }
   }
+
+  // Inject content scripts into already-open Zendesk tabs.
+  // MV3 doesn't auto-inject manifest content_scripts into tabs that were
+  // open before the extension was installed or updated, so the popup can't
+  // communicate with them until the user refreshes the page. This fixes that.
+  if (reason === "install" || reason === "update") {
+    browser.tabs.query({ url: "https://*.zendesk.com/*" }).then((tabs) => {
+      for (const tab of tabs) {
+        browser.scripting
+          .executeScript({
+            target: { tabId: tab.id },
+            files: [
+              "lib/browser-polyfill.min.js",
+              "content-scripts/contentscript.js",
+            ],
+          })
+          .catch((err) => {
+            // Tab may have navigated away or been closed during injection.
+            console.warn(
+              `Zendesk Link Collector - failed to inject into tab ${tab.id}:`,
+              err.message
+            );
+          });
+      }
+    });
+  }
 });
 
 // Check if background processing is enabled.
