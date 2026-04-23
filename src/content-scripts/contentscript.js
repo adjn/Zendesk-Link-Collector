@@ -3,8 +3,8 @@ console.log("Zendesk Link Collector - loaded content script");
 // Message handler for messages from the background script.
 browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   // Scroll to the comment.
+  // This is fire-and-forget — no response is sent back to the caller.
   if (request.type == "scroll") {
-    // This is async because it contains a fetch which we must wait for before sending a response.
     (async () => {
       const element = document.querySelector(
         `[data-comment-id="${request.commentID}"]`
@@ -131,7 +131,11 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
   }
 
-  return true;
+  // Only keep the message channel open for types that call sendResponse.
+  // "fetch" and "parse-html-a" send async responses; other types are fire-and-forget.
+  if (request.type == "fetch" || request.type == "parse-html-a") {
+    return true;
+  }
 });
 
 function highlightComment(element) {

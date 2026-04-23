@@ -365,7 +365,14 @@ function importLinkPatternsJSON() {
   fileReader.readAsText(file, "UTF-8");
   fileReader.onload = function () {
     const fileContent = fileReader.result;
-    const newOptions = JSON.parse(fileContent);
+    let newOptions;
+    try {
+      newOptions = JSON.parse(fileContent);
+    } catch (_err) {
+      console.error("Invalid JSON file");
+      setLinkPatternError("Invalid JSON file format");
+      return;
+    }
     const overwrite =
       document.getElementById("link-patterns-import-type").value == "overwrite"
         ? true
