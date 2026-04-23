@@ -100,6 +100,7 @@ function writeLinkClipboard(text, href) {
 }
 
 // Code from https://stackoverflow.com/questions/55214828/how-to-make-a-cross-origin-request-in-a-content-script-currently-blocked-by-cor/55215898#55215898
+// eslint-disable-next-line no-unused-vars -- called indirectly via messaging
 async function fetchResource(input, init) {
   const type = "fetch";
   return new Promise((resolve, reject) => {
@@ -661,7 +662,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Event listener to toggle background processing.
   document
     .getElementById("button-background-processing")
-    .addEventListener("click", (event) => {
+    .addEventListener("click", (_event) => {
       const checkbox = document.getElementById("background-processing");
       browser.storage.sync.get("optionsGlobal").then((data) => {
         // If run in background is disabled, then enable it.

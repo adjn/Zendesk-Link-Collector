@@ -147,7 +147,7 @@ function saveLinkPatterns() {
     // Validate RegEx.
     try {
       new RegExp(document.getElementById("pattern").value);
-    } catch (SyntaxError) {
+    } catch (_syntaxError) {
       setLinkPatternError(
         "Invalid RegEx pattern! - Great work! That's difficult to do! :D"
       );
@@ -280,7 +280,7 @@ function updateLinkPattern() {
       // Validate RegEx.
       try {
         new RegExp(document.getElementById("pattern").value);
-      } catch (SyntaxError) {
+      } catch (_syntaxError) {
         setLinkPatternError(
           "Invalid RegEx pattern! - Great work! That's difficult to do! :D"
         );
@@ -365,7 +365,14 @@ function importLinkPatternsJSON() {
   fileReader.readAsText(file, "UTF-8");
   fileReader.onload = function () {
     const fileContent = fileReader.result;
-    const newOptions = JSON.parse(fileContent);
+    let newOptions;
+    try {
+      newOptions = JSON.parse(fileContent);
+    } catch (_err) {
+      console.error("Invalid JSON file");
+      setLinkPatternError("Invalid JSON file format");
+      return;
+    }
     const overwrite =
       document.getElementById("link-patterns-import-type").value == "overwrite"
         ? true
@@ -392,7 +399,7 @@ function importLinkPatternsJSON() {
       // Validate RegEx.
       try {
         new RegExp(option.pattern);
-      } catch (SyntaxError) {
+      } catch (_syntaxError) {
         console.error("Invalid JSON data (bad pattern)");
         return;
       }

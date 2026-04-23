@@ -33,11 +33,11 @@ async function fetchResource(input, init) {
 // Parse the HTML text and return an array of links.
 async function parseAElementsFromHTMLText(htmlText) {
   const type = "parse-html-a";
-  const [tab] = await chrome.tabs.query({
+  const [tab] = await browser.tabs.query({
     active: true,
     lastFocusedWindow: true,
   });
-  const response = await chrome.tabs.sendMessage(tab.id, {
+  const response = await browser.tabs.sendMessage(tab.id, {
     type: type,
     htmlText: htmlText,
   });
@@ -92,6 +92,7 @@ async function filterTicket() {
     const response = await fetchResource(nextPage).catch((error) => {
       console.error("Request failed:", error);
     });
+    if (!response) return;
     const commentData = await response.json();
     if (commentData.next_page != null) {
       nextPage = commentData.next_page;
@@ -110,7 +111,7 @@ async function filterTicket() {
     r++;
 
     //Grab only the required fields from the JSON.
-    await commentData.comments.forEach(async (comment) => {
+    for (const comment of commentData.comments) {
       // Parse the HTML text and return an array of links.
       const links = await parseAElementsFromHTMLText(comment.html_body);
       // Push the required link information to the linksArr.
@@ -159,7 +160,7 @@ async function filterTicket() {
           });
         }
       });
-    });
+    }
   }
 
   // Custom field link collecting section.
@@ -169,6 +170,7 @@ async function filterTicket() {
   ).catch((error) => {
     console.error("Request failed:", error);
   });
+  if (!response) return;
   const ticketData = await response.json();
   const customFields = ticketData.ticket.custom_fields;
 
@@ -217,7 +219,13 @@ async function filterTicket() {
   filters.forEach((filter) => {
     const filteredLinksArr = [];
     linksArr.forEach((link) => {
-      const re = new RegExp(filter.pattern);
+      let re;
+      try {
+        re = new RegExp(filter.pattern);
+      } catch (_err) {
+        console.error(`Invalid regex in filter "${filter.title}":`, filter.pattern);
+        return;
+      }
       if (re.test(link.href)) {
         const link2Push = Object.assign({}, link);
         link2Push.summaryType =
@@ -236,7 +244,12 @@ async function filterTicket() {
       if (found == undefined) {
         filteredLinksArrUnique.push(link);
         // If found, compare createdAt dates and keep the latest.
-      } else if (link.createdAt > found.createdAt && found.createdAt != null) {
+      // Only replace when the new link has a valid date that is newer,
+      // or when the new link has a date and the existing one doesn't.
+      } else if (
+        (link.createdAt != null && found.createdAt != null && link.createdAt > found.createdAt) ||
+        (link.createdAt != null && found.createdAt == null)
+      ) {
         filteredLinksArrUnique.push(link);
         filteredLinksArrUnique.splice(filteredLinksArrUnique.indexOf(found), 1);
         console.log("Removing duplicate link: " + link.href);
@@ -312,6 +325,7 @@ const filteredLinks = filters.flatMap((filter) => {
 // Return 1 if version1 is greater than version2.
 // Return -1 if version1 is less than version2.
 // Return 0 if version1 is equal to version2.
+// eslint-disable-next-line no-unused-vars -- kept for use in future version migrations
 function compareVersions(version1, version2) {
   const v1parts = version1.split(".");
   const v2parts = version2.split(".");
@@ -460,7 +474,7 @@ browser.tabs.onActivated.addListener((activeTab) => {
     if (
       !tab.url ||
       tab.url.search(
-        /^https:\/\/[\-_A-Za-z0-9]+\.zendesk.com\/agent\/tickets\/[0-9]+/i
+        /^https:\/\/[-_A-Za-z0-9]+\.zendesk\.com\/agent\/tickets\/[0-9]+/i
       ) == -1
     ) {
       browser.action.disable(tab.id);
@@ -492,7 +506,7 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (
     !tab.url ||
     tab.url.search(
-      /^https:\/\/[\-_A-Za-z0-9]+\.zendesk.com\/agent\/tickets\/[0-9]+/i
+      /^https:\/\/[-_A-Za-z0-9]+\.zendesk\.com\/agent\/tickets\/[0-9]+/i
     ) == -1
   ) {
     browser.action.disable(tab.id);
