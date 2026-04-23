@@ -1,6 +1,9 @@
 # ZLC Specific
 build
 
+# Dependencies
+node_modules
+
 # General
 .DS_Store
 .AppleDouble

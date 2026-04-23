@@ -312,6 +312,7 @@ const filteredLinks = filters.flatMap((filter) => {
 // Return 1 if version1 is greater than version2.
 // Return -1 if version1 is less than version2.
 // Return 0 if version1 is equal to version2.
+// eslint-disable-next-line no-unused-vars -- kept for use in future version migrations
 function compareVersions(version1, version2) {
   const v1parts = version1.split(".");
   const v2parts = version2.split(".");
@@ -460,7 +461,7 @@ browser.tabs.onActivated.addListener((activeTab) => {
     if (
       !tab.url ||
       tab.url.search(
-        /^https:\/\/[\-_A-Za-z0-9]+\.zendesk.com\/agent\/tickets\/[0-9]+/i
+        /^https:\/\/[-_A-Za-z0-9]+\.zendesk.com\/agent\/tickets\/[0-9]+/i
       ) == -1
     ) {
       browser.action.disable(tab.id);
@@ -492,7 +493,7 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (
     !tab.url ||
     tab.url.search(
-      /^https:\/\/[\-_A-Za-z0-9]+\.zendesk.com\/agent\/tickets\/[0-9]+/i
+      /^https:\/\/[-_A-Za-z0-9]+\.zendesk.com\/agent\/tickets\/[0-9]+/i
     ) == -1
   ) {
     browser.action.disable(tab.id);
