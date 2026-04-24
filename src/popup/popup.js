@@ -195,6 +195,9 @@ async function displayLinks(linksBundle) {
         iScroll.setAttribute("commentID", link.commentID);
         iScroll.setAttribute("auditID", link.auditID);
         iScroll.setAttribute("title", "Scroll to link's source comment.");
+        iScroll.setAttribute("role", "button");
+        iScroll.setAttribute("tabindex", "0");
+        iScroll.setAttribute("aria-label", "Scroll to source comment");
         li.appendChild(iScroll);
       }
 
@@ -202,6 +205,9 @@ async function displayLinks(linksBundle) {
       const iCopy = document.createElement("i");
       iCopy.setAttribute("class", "icon-invert icon-li icon-copy");
       iCopy.setAttribute("title", "Copy link to markdown.");
+      iCopy.setAttribute("role", "button");
+      iCopy.setAttribute("tabindex", "0");
+      iCopy.setAttribute("aria-label", "Copy link as markdown");
       li.appendChild(iCopy);
 
       // Add link content or parent context to list item.
@@ -299,11 +305,19 @@ async function displayLinks(linksBundle) {
     .getElementById("list-container-links")
     .querySelectorAll("i.icon-search")
     .forEach((i) => {
-      i.addEventListener("click", () => {
+      const handler = () => {
         scrollToComment({
           commentID: i.getAttribute("commentID"),
           auditID: i.getAttribute("auditID"),
         });
+      };
+      i.addEventListener("click", handler);
+      // Allow keyboard activation for focusable icon buttons.
+      i.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handler();
+        }
       });
     });
 
@@ -312,10 +326,18 @@ async function displayLinks(linksBundle) {
     .getElementById("list-container-links")
     .querySelectorAll("i.icon-copy")
     .forEach((i) => {
-      i.addEventListener("click", () => {
+      const handler = () => {
         const href = i.parentElement.querySelector("a").href;
         const text = i.parentElement.textContent;
         writeLinkClipboard(text, href);
+      };
+      i.addEventListener("click", handler);
+      // Allow keyboard activation for focusable icon buttons.
+      i.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handler();
+        }
       });
     });
 
@@ -368,6 +390,10 @@ async function displayAttachments(attachmentsArr) {
     i.setAttribute("class", "icon-invert icon-li icon-search");
     i.setAttribute("commentID", comment.commentID);
     i.setAttribute("auditID", comment.auditID);
+    i.setAttribute("role", "button");
+    i.setAttribute("tabindex", "0");
+    i.setAttribute("aria-label", "Scroll to source comment");
+    i.setAttribute("title", "Scroll to attachment's source comment.");
     liDate.append(i, txtDate);
 
     const ulComment = document.createElement("ul");
@@ -396,11 +422,19 @@ async function displayAttachments(attachmentsArr) {
     .getElementById("list-container-attachments")
     .querySelectorAll("i")
     .forEach((i) => {
-      i.addEventListener("click", () => {
+      const handler = () => {
         scrollToComment({
           commentID: i.getAttribute("commentID"),
           auditID: i.getAttribute("auditID"),
         });
+      };
+      i.addEventListener("click", handler);
+      // Allow keyboard activation for focusable icon buttons.
+      i.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handler();
+        }
       });
     });
 }
@@ -440,6 +474,9 @@ async function displayImages(imagesArr) {
       iScroll.setAttribute("commentID", image.commentID);
       iScroll.setAttribute("auditID", image.auditID);
       iScroll.setAttribute("title", "Scroll to image's source comment.");
+      iScroll.setAttribute("role", "button");
+      iScroll.setAttribute("tabindex", "0");
+      iScroll.setAttribute("aria-label", "Scroll to source comment");
       li.appendChild(iScroll);
     }
 
@@ -470,11 +507,19 @@ async function displayImages(imagesArr) {
     .getElementById("list-container-images")
     .querySelectorAll("i.icon-search")
     .forEach((i) => {
-      i.addEventListener("click", () => {
+      const handler = () => {
         scrollToComment({
           commentID: i.getAttribute("commentID"),
           auditID: i.getAttribute("auditID"),
         });
+      };
+      i.addEventListener("click", handler);
+      // Allow keyboard activation for focusable icon buttons.
+      i.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handler();
+        }
       });
     });
 }
@@ -697,6 +742,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Add event listeners to view swap buttons.
+
   // Links tab is clicked.
   document.getElementById("button-links").addEventListener("click", () => {
     document.getElementById("button-links").classList.add("checked");

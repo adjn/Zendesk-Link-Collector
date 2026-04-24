@@ -331,6 +331,15 @@ li.list-item-attachments ul li {
     vertical-align: middle;
 }
 
+/* Focus-visible outlines for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+.icon-li:focus-visible {
+    outline: 2px solid var(--accent-light);
+    outline-offset: 2px;
+}
+
 .icon-copy {
     background-image: url(../icons/copy.svg);
 }
