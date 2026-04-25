@@ -283,10 +283,20 @@ async function displayLinks(linksBundle) {
           "title",
           `Click to copy time in UTC\n\n${link.createdAt}`
         );
+        spanDate.setAttribute("role", "button");
+        spanDate.setAttribute("tabindex", "0");
+        spanDate.setAttribute("aria-label", `Copy date ${spanDate.textContent}`);
         li.appendChild(spaceNode);
         li.appendChild(spanDate);
         spanDate.addEventListener("click", () => {
           navigator.clipboard.writeText(link.createdAt);
+        });
+        // Keyboard activation: Enter or Space copies the timestamp.
+        spanDate.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            navigator.clipboard.writeText(link.createdAt);
+          }
         });
       }
 
