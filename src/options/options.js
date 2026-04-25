@@ -1,6 +1,80 @@
 // LATER:
 // - Edit?
 
+// Single-step undo for the most recent rule mutation.
+//
+// Scope is deliberately narrow: only delete, inline-edit, add (Save
+// Link Pattern), example-import (one-click add from the Examples
+// table), and import (JSON file) produce a snapshot. Reorder *clears*
+// the snapshot rather than push a new one, so the user can never
+// click Undo and silently lose an unrelated mutation they did in
+// between. (The user explicitly asked for "undo just the LAST
+// destructive change to a rule" — single-step, narrow.)
+//
+// State is module-local — closing the page drops it. That matches the
+// typical scope of a UI-level undo and avoids reasoning about a stale
+// snapshot persisted across browser sessions.
+//
+// The snapshot is a deep clone of the full `options` array prior to
+// the mutation. The full-array shape keeps the undo path trivial:
+// write the snapshot back, no per-rule diff logic. Imports (which
+// can replace the entire table) reuse this same shape — overwrite
+// and append both look like "the array was X, now it's Y".
+let rulesLastMutation = null;
+
+// type: "delete" | "edit" | "import"
+// detail: for delete/edit the rule title; for import the mode
+//         ("overwrite" or "append") so the label can disambiguate.
+function setRulesLastMutation(type, detail, priorOptions) {
+  rulesLastMutation = { type, detail, priorOptions };
+  renderRulesUndoRegion();
+}
+
+function clearRulesLastMutation() {
+  if (rulesLastMutation === null) return;
+  rulesLastMutation = null;
+  renderRulesUndoRegion();
+}
+
+function renderRulesUndoRegion() {
+  const btn = document.getElementById("rules-undo-btn");
+  if (!btn) return;
+  // Glyph-only label — the descriptive text lives on aria-label and
+  // title (set below) so screen readers and hover still get the full
+  // context, but no English word is presented visually.
+  btn.textContent = "↶";
+  if (!rulesLastMutation) {
+    // Always rendered; the disabled state is what communicates
+    // "nothing to undo" to sighted users (dimmed via .btn:disabled).
+    btn.disabled = true;
+    btn.setAttribute("aria-label", "Undo last rule change");
+    btn.setAttribute("title", "Nothing to undo");
+    return;
+  }
+  btn.disabled = false;
+  let label;
+  if (rulesLastMutation.type === "import") {
+    label = `Undo import (${rulesLastMutation.detail})`;
+  } else {
+    // delete | edit | add — detail is the rule title.
+    const verb = rulesLastMutation.type;
+    label = `Undo ${verb} of "${rulesLastMutation.detail}"`;
+  }
+  btn.setAttribute("aria-label", label);
+  btn.setAttribute("title", label);
+}
+
+function undoLastRulesMutation() {
+  if (!rulesLastMutation) return;
+  // Capture before clearing in case the storage write fails — we want
+  // the button to remain available so the user can try again.
+  const snapshot = rulesLastMutation.priorOptions;
+  browser.storage.sync.set({ options: snapshot }).then(() => {
+    clearRulesLastMutation();
+    loadLinkPatterns();
+  });
+}
+
 // Load link patterns into the link patterns table.
 function loadLinkPatterns() {
   const linkTable = document.getElementById("table-link-patterns").tBodies[0];
@@ -262,10 +336,14 @@ function saveLinkPatterns() {
       console.error("Invalid RegEx");
       return;
     }
+    // Snapshot the pre-add array for single-step undo. Captured BEFORE
+    // the push below so undo restores exactly what the user had.
+    const priorOptions = structuredClone(data.options);
+    const newTitle = document.getElementById("title").value;
     // Add new link pattern to data.
     data.options.push({
       id: crypto.randomUUID(),
-      title: document.getElementById("title").value,
+      title: newTitle,
       pattern: document.getElementById("pattern").value,
       showParent: document.getElementById("show-parent").checked,
       summaryType: document.getElementById("summary-type").value,
@@ -273,6 +351,7 @@ function saveLinkPatterns() {
     });
     // Save new link pattern to disk.
     browser.storage.sync.set({ options: data.options }).then(() => {
+      setRulesLastMutation("add", newTitle, priorOptions);
       // Load the new patterns table.
       loadLinkPatterns();
       // Reset input fields.
@@ -318,6 +397,7 @@ function reorderLinkPattern(id, move) {
     });
 
     browser.storage.sync.set({ options: data.options }).then(() => {
+      clearRulesLastMutation();
       loadLinkPatterns();
     });
   });
@@ -330,12 +410,18 @@ function deleteLink(id) {
       //Shouldn't happen?
       return;
     }
+    // Capture the pre-mutation state for single-step undo. structuredClone
+    // is safe here — pattern entries are plain {string, boolean} objects.
+    const priorOptions = structuredClone(data.options);
+    let deletedTitle = "";
     data.options.forEach((option) => {
       if (option.id == id) {
+        deletedTitle = option.title;
         data.options.splice(data.options.indexOf(option), 1);
       }
     });
     browser.storage.sync.set({ options: data.options }).then(() => {
+      setRulesLastMutation("delete", deletedTitle, priorOptions);
       loadLinkPatterns();
     });
   });
@@ -538,6 +624,12 @@ function saveLinkPatternInline(id) {
   browser.storage.sync.get("options").then((data) => {
     const idx = data.options.findIndex((o) => o.id === id);
     if (idx === -1) return;
+    // Capture pre-edit state for single-step undo. The snapshot must be
+    // taken before we mutate data.options. We also remember the pre-edit
+    // title so the undo label names the rule the user actually changed
+    // (renames otherwise look confusing — "Undo edit of <new name>").
+    const priorOptions = structuredClone(data.options);
+    const priorTitle = data.options[idx].title;
     data.options[idx] = {
       ...data.options[idx],
       title: newTitle,
@@ -548,7 +640,10 @@ function saveLinkPatternInline(id) {
     };
     // loadLinkPatterns re-renders the table and drops the row-local error
     // region naturally — no explicit clear needed.
-    browser.storage.sync.set({ options: data.options }).then(loadLinkPatterns);
+    browser.storage.sync.set({ options: data.options }).then(() => {
+      setRulesLastMutation("edit", priorTitle, priorOptions);
+      loadLinkPatterns();
+    });
   });
 }
 
@@ -646,7 +741,11 @@ function importLinkPatternsJSON() {
       return;
     }
 
-    const reportResult = () => {
+    const reportResult = (priorOptions, mode) => {
+      // Capture the pre-import array as a single-step undo snapshot.
+      // Both overwrite and append funnel through here, so one path
+      // covers both modes.
+      setRulesLastMutation("import", mode, priorOptions);
       setIoStatus(
         skipped === 0
           ? ""
@@ -655,15 +754,15 @@ function importLinkPatternsJSON() {
       loadLinkPatterns();
     };
 
-    if (overwrite) {
-      browser.storage.sync.set({ options: validOptions }).then(reportResult);
-      return;
-    }
+    // Always read existing options first so we have a snapshot for undo,
+    // regardless of import mode.
     browser.storage.sync.get("options").then((data) => {
       const existing = Array.isArray(data.options) ? data.options : [];
+      const priorOptions = structuredClone(existing);
+      const next = overwrite ? validOptions : existing.concat(validOptions);
       browser.storage.sync
-        .set({ options: existing.concat(validOptions) })
-        .then(reportResult);
+        .set({ options: next })
+        .then(() => reportResult(priorOptions, overwrite ? "overwrite" : "append"));
     });
   };
 
@@ -744,6 +843,12 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("link-patterns-export")
     .addEventListener("click", downloadLinkPatternsJSON);
 
+  // Wire the rules-undo button. Hidden by default; renderRulesUndoRegion
+  // toggles visibility based on rulesLastMutation state.
+  document
+    .getElementById("rules-undo-btn")
+    .addEventListener("click", undoLastRulesMutation);
+
   // Live regex validation: debounced so we don't recompile on every key.
   // After 300 ms of idle typing we (a) show/clear the inline error and
   // (b) toggle a red "invalid" style on the Save button — a quick visual
@@ -797,8 +902,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.options == undefined || data.options.length <= 0) {
           data.options = [];
         }
+        // Snapshot pre-add array for single-step undo (see options.js
+        // top-of-file rulesLastMutation comment).
+        const priorOptions = structuredClone(data.options);
         data.options.push(newOption);
-        browser.storage.sync.set({ options: data.options }).then(loadLinkPatterns);
+        browser.storage.sync.set({ options: data.options }).then(() => {
+          setRulesLastMutation("add", title, priorOptions);
+          loadLinkPatterns();
+        });
       });
     });
   });

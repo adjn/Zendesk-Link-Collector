@@ -174,6 +174,20 @@
                             <tbody></tbody>
                         </table>
                     </div>
+                    <!-- Single-step undo for the most recent rule edit or
+                         delete. Sits at the bottom-right of the Rules
+                         subcard, roughly under the Delete column. The
+                         button is always rendered; its disabled state
+                         communicates "nothing to undo" so the surrounding
+                         layout never jumps. Visible label is glyph-only
+                         (language accessibility — see Cancel button in
+                         the inline-edit row); the descriptive text lives
+                         on aria-label and title for screen readers and
+                         hover. -->
+                    <div class="rules-undo-region" id="rules-undo-region">
+                        <button type="button" class="btn btn--small btn--ghost" id="rules-undo-btn"
+                                disabled aria-label="Undo last rule change" title="Nothing to undo">↶</button>
+                    </div>
                 </div>
 
             </div>

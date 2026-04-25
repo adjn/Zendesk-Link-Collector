@@ -390,6 +390,28 @@ select {
 }
 .hidden { display: none; }
 
+/* Undo affordance for the most recent rule edit or delete. Sits at
+   the bottom-right of the Rules subcard so the glyph lines up under
+   the Delete column. Always rendered; the .btn:disabled rules above
+   give it a grey/dimmed look when there's nothing to undo. */
+.rules-undo-region {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--s-1) var(--s-2);
+}
+/* When there is something to undo (button is enabled), give the button
+   a red background to signal a reversible destructive/edit action is
+   available. The .btn:disabled rules above handle the greyed/dimmed
+   empty state. */
+#rules-undo-btn:not(:disabled) {
+    background: var(--danger-fg);
+    border-color: var(--danger-fg);
+    color: white;
+}
+#rules-undo-btn:not(:disabled):hover {
+    filter: brightness(1.1);
+}
+
 /* Slot reservation for section-level alerts only. The row-edit error has
    its own slot-reservation strategy via the flex stack inside the pattern
    cell — see .row-edit-pattern-stack below. Other .hidden consumers (image
