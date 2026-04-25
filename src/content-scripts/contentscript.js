@@ -1,3 +1,9 @@
+// Prevent duplicate listeners if the content script is re-injected
+// (e.g., programmatic injection on extension install/update while the
+// manifest-based injection already ran).
+if (!globalThis.__zlcContentScriptLoaded) {
+globalThis.__zlcContentScriptLoaded = true;
+
 console.log("Zendesk Link Collector - loaded content script");
 
 // Message handler for messages from the background script.
@@ -170,3 +176,5 @@ function highlightComment(element) {
     // This is very important to ensure the HTML of this element stays the same as what is returned by the audits endpoint.
   }
 }
+
+} // end idempotency guard
