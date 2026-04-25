@@ -253,7 +253,7 @@ async function displayLinks(linksBundle) {
             "data-created-at"
           )}\nLink source: ${li.getAttribute("data-source")}`
         );
-        a.textContent = link.text;
+        a.textContent = link.text || link.href;
         li.appendChild(a);
       }
 

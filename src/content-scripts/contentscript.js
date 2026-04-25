@@ -76,10 +76,15 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     const links = doc.querySelectorAll(`a`);
     const linksArr = [];
     links.forEach((link) => {
+      // Strip fragment/anchor from URL — anchors are unreliable and
+      // cause duplicate entries for the same page.
+      const url = new URL(link.href);
+      url.hash = "";
+      const cleanHref = url.toString();
       linksArr.push({
         parent_text: link.parentElement.innerHTML,
         text: link.innerText,
-        href: link.href,
+        href: cleanHref,
       });
     });
     sendResponse(linksArr);
