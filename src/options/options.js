@@ -81,12 +81,16 @@ function loadLinkPatterns() {
       tdReorder.className = "cell--reorder";
       const buttonReorderUp = document.createElement("button");
       buttonReorderUp.setAttribute("class", "button-reorder-up");
-      buttonReorderUp.textContent = "Up";
+      buttonReorderUp.textContent = "▲";
+      buttonReorderUp.setAttribute("title", "Move up");
+      buttonReorderUp.setAttribute("aria-label", "Move up");
       tdReorder.appendChild(buttonReorderUp);
       // Create down button.
       const buttonReorderDown = document.createElement("button");
       buttonReorderDown.setAttribute("class", "button-reorder-down");
-      buttonReorderDown.textContent = "Down";
+      buttonReorderDown.textContent = "▼";
+      buttonReorderDown.setAttribute("title", "Move down");
+      buttonReorderDown.setAttribute("aria-label", "Move down");
       tdReorder.appendChild(buttonReorderDown);
       nodes.push(tdReorder);
 
@@ -230,7 +234,7 @@ function saveLinkPatterns() {
     // Validate RegEx.
     try {
       new RegExp(document.getElementById("pattern").value);
-    } catch (SyntaxError) {
+    } catch {
       setLinkPatternError(
         "Invalid RegEx pattern! - Great work! That's difficult to do! :D"
       );
@@ -517,110 +521,6 @@ function saveLinkPatternInline(id) {
   });
 }
 
-// Edit a link pattern from the link patterns table.
-function editLinkPattern(id) {
-  // Disable all buttons except the one being edited.
-  document
-    .querySelectorAll("#table-link-patterns td button")
-    .forEach((button) => {
-      button.disabled = true;
-    });
-
-  // Fill the input fields with the selected link pattern's current values.
-  browser.storage.sync.get("options").then((data) => {
-    const option = data.options.find((option) => option.id === id);
-    if (option) {
-      document.getElementById("title").value = option.title;
-      document.getElementById("pattern").value = option.pattern;
-      document.getElementById("show-parent").checked = option.showParent;
-      document.getElementById("summary-type").value =
-        option.summaryType || "none";
-      document.getElementById("show-date").checked = option.showDate || false;
-
-      // Post a message that we are editing.
-      setLinkPatternError(
-        `You are editing the "${option.title}" link pattern!`
-      );
-
-      document.getElementById(id).classList.add("editing");
-
-      // Change the Save button to an Update button.
-      const saveButton = document.getElementById("button-save-link-patterns");
-      saveButton.textContent = "Update Link Pattern";
-      saveButton.removeEventListener("click", saveLinkPatterns);
-      saveButton.setAttribute("editing", id);
-      saveButton.onclick = updateLinkPattern;
-    }
-  });
-}
-
-// Update an existing link pattern with the values from the input fields.
-function updateLinkPattern() {
-  const id = document
-    .getElementById("button-save-link-patterns")
-    .getAttribute("editing");
-  browser.storage.sync.get("options").then((data) => {
-    const optionIndex = data.options.findIndex((option) => option.id === id);
-    if (optionIndex !== -1) {
-      // Validate RegEx.
-      try {
-        new RegExp(document.getElementById("pattern").value);
-      } catch (SyntaxError) {
-        setLinkPatternError(
-          "Invalid RegEx pattern! - Great work! That's difficult to do! :D"
-        );
-        console.error("Invalid RegEx");
-        return;
-      }
-
-      // Update the link pattern with the new values.
-      data.options[optionIndex].title = document.getElementById("title").value;
-      data.options[optionIndex].pattern =
-        document.getElementById("pattern").value;
-      data.options[optionIndex].showParent =
-        document.getElementById("show-parent").checked;
-      data.options[optionIndex].summaryType =
-        document.getElementById("summary-type").value;
-      data.options[optionIndex].showDate =
-        document.getElementById("show-date").checked;
-
-      // Save the updated link patterns to storage.
-      browser.storage.sync.set({ options: data.options }).then(() => {
-        // Load the updated patterns table.
-        loadLinkPatterns();
-
-        // Reset input fields.
-        document.getElementById("title").value = "";
-        document.getElementById("pattern").value = "";
-        document.getElementById("pattern").dispatchEvent(new Event("input"));
-        document.getElementById("show-parent").checked = false;
-        document.getElementById("summary-type").value = "none";
-        document.getElementById("show-date").checked = false;
-
-        // Change the Update button back to a Save button.
-        const saveButton = document.getElementById("button-save-link-patterns");
-        saveButton.textContent = "Save Link Pattern";
-        saveButton.removeEventListener("click", updateLinkPattern);
-        saveButton.addEventListener("click", saveLinkPatterns);
-
-        //Clear the message that we are editing.
-        setLinkPatternError("");
-
-        //saveButton.onclick = saveLinkPatterns;
-
-        // Re-enable all edit buttons.
-        /* document
-          .querySelectorAll("#table-link-patterns td button")
-          .forEach((button) => {
-            if (button.textContent === "Edit") {
-              button.disabled = false;
-            }
-          }); */
-      });
-    }
-  });
-}
-
 // Export/Download link patterns as JSON.
 function downloadLinkPatternsJSON() {
   browser.storage.sync.get("options").then((data) => {
@@ -754,6 +654,8 @@ function saveGlobalOptions() {
 
     data.optionsGlobal.wrapLists =
       document.getElementById("wrap-lists").checked;
+    data.optionsGlobal.backgroundProcessing =
+      document.getElementById("background-processing").checked;
     data.optionsGlobal.includeAttachments = document.getElementById(
       "include-attachments"
     ).checked;
@@ -778,6 +680,8 @@ function loadGlobalOptions() {
     }
     document.getElementById("wrap-lists").checked =
       data.optionsGlobal.wrapLists;
+    document.getElementById("background-processing").checked =
+      data.optionsGlobal.backgroundProcessing || false;
     document.getElementById("include-attachments").checked =
       data.optionsGlobal.includeAttachments;
     document.getElementById("include-images").checked =

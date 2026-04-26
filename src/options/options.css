@@ -574,9 +574,7 @@ input[type="radio"]:checked::after {
 
 /* Narrow-viewport collapse: 2-col grids drop to one column. */
 @media (max-width: 720px) {
-    .globals { grid-template-columns: 1fr; }
     .form-grid,
-    .form-grid--three,
     .form-grid--title-pattern,
     .toggle-list--grid { grid-template-columns: 1fr; }
     .io-row__buttons { margin-left: 0; }
