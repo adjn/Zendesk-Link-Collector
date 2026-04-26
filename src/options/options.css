@@ -135,42 +135,24 @@ main.shell {
     margin-bottom: var(--s-3);
 }
 
-/* Globals: 2-column grid of toggle rows. */
-.globals {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--s-3) var(--s-5);
-}
+/*
+ * Toggle row: one flex line of [checkbox][label][?]. Single primitive,
+ * used identically in the global-settings grid and in the pattern form.
+ *
+ * The 2-column grid for globals is on the parent (.toggle-list--grid).
+ * No nested grids, no display:contents — keeping this primitive flat is
+ * the whole point of the recent simplification.
+ */
 .toggle-row {
-    display: grid;
-    grid-template-columns: 18px auto 1fr;
-    gap: var(--s-3);
-    align-items: start;
-    padding: var(--s-2) 0;
-}
-/* Inline variant used inside the pattern form (no description). */
-.toggle-row--inline {
-    grid-template-columns: 18px auto auto;
+    display: flex;
     align-items: center;
-    padding: 0;
+    gap: var(--s-2);
+    padding: var(--s-1) 0;
 }
 .toggle-row__label {
     font-weight: 600;
     cursor: pointer;
     color: var(--text-strong);
-}
-/* Bigger, more legible label for the global-settings toggles where the
-   row is the entire piece of UI (no description text below). */
-.toggle-row__label--lg {
-    font-size: 16px;
-    line-height: 1.3;
-}
-/* Description sits on the panel background — keep it close to body text
-   color so it's comfortably readable, just one shade down from the label. */
-.toggle-row__desc {
-    color: var(--text);
-    font-size: 13px;
-    line-height: 1.45;
 }
 
 /* Form label with an inline help button next to it (e.g. "Summary type ?"). */
@@ -180,26 +162,13 @@ main.shell {
     gap: var(--s-1);
 }
 
-/* Two-column layout for global-settings toggles. Each column is its own
-   3-track grid (☐ label ?) so `auto` sizing makes the ?'s align right
-   after the column's longest label — a per-column tab stop. */
+/* Two-column layout for the global-settings toggles. Each cell is just a
+   .toggle-row — same primitive used everywhere else. */
 .toggle-list--grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--s-3) var(--s-6);
 }
-.toggle-col {
-    display: grid;
-    grid-template-columns: 18px auto auto;
-    align-content: start;
-    justify-self: start;
-    row-gap: var(--s-3);
-    column-gap: var(--s-3);
-}
-.toggle-list--grid .toggle-row--inline {
-    display: contents;
-}
-.toggle-list--grid .help-tip { margin-left: 0; }
 
 /* Custom-styled checkboxes — consistent across browsers, accent-filled when
    checked. Used for both global toggles and the disabled checkboxes in the

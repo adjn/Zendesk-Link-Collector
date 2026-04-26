@@ -29,38 +29,40 @@
                 <h2 id="h-globals">Global settings</h2>
                 <p>These apply to every Zendesk ticket.</p>
             </div>
+            <!--
+              2-column grid of single-line toggle rows. Each row is a flex
+              container of [checkbox][label][?] — no nested grids, no
+              display:contents. Order in source = visual order top-to-bottom,
+              column-by-column.
+            -->
             <div class="toggle-list toggle-list--grid">
-                <div class="toggle-col">
-                    <div class="toggle-row toggle-row--inline">
-                        <input type="checkbox" id="wrap-lists">
-                        <label for="wrap-lists" class="toggle-row__label toggle-row__label--lg">Wrap long URLs</label>
-                        <button type="button" class="help-tip"
-                                aria-label="Wrap long URLs: wrap long URLs in the popup instead of horizontal scrolling."
-                                title="Wrap long URLs in the popup instead of horizontal scrolling.">?</button>
-                    </div>
-                    <div class="toggle-row toggle-row--inline">
-                        <input type="checkbox" id="include-attachments">
-                        <label for="include-attachments" class="toggle-row__label toggle-row__label--lg">Include attachments</label>
-                        <button type="button" class="help-tip"
-                                aria-label="Include attachments: include attachment links in the markdown summary."
-                                title="Includes attachment links in the markdown summary.">?</button>
-                    </div>
+                <div class="toggle-row">
+                    <input type="checkbox" id="wrap-lists">
+                    <label for="wrap-lists" class="toggle-row__label">Wrap long URLs</label>
+                    <button type="button" class="help-tip"
+                            aria-label="Wrap long URLs: wrap long URLs in the popup instead of horizontal scrolling."
+                            title="Wrap long URLs in the popup instead of horizontal scrolling.">?</button>
                 </div>
-                <div class="toggle-col">
-                    <div class="toggle-row toggle-row--inline">
-                        <input type="checkbox" id="background-processing">
-                        <label for="background-processing" class="toggle-row__label toggle-row__label--lg">Run in background</label>
-                        <button type="button" class="help-tip"
-                                aria-label="Run in background: pre-collect links while a Zendesk tab loads. Faster popup, more API calls."
-                                title="Pre-collects links while a Zendesk tab loads. Faster popup, more API calls.">?</button>
-                    </div>
-                    <div class="toggle-row toggle-row--inline">
-                        <input type="checkbox" id="include-images">
-                        <label for="include-images" class="toggle-row__label toggle-row__label--lg">Include images</label>
-                        <button type="button" class="help-tip"
-                                aria-label="Include images: include image links in the markdown summary."
-                                title="Includes image links in the markdown summary.">?</button>
-                    </div>
+                <div class="toggle-row">
+                    <input type="checkbox" id="background-processing">
+                    <label for="background-processing" class="toggle-row__label">Run in background</label>
+                    <button type="button" class="help-tip"
+                            aria-label="Run in background: pre-collect links while a Zendesk tab loads. Faster popup, more API calls."
+                            title="Pre-collects links while a Zendesk tab loads. Faster popup, more API calls.">?</button>
+                </div>
+                <div class="toggle-row">
+                    <input type="checkbox" id="include-attachments">
+                    <label for="include-attachments" class="toggle-row__label">Include attachments</label>
+                    <button type="button" class="help-tip"
+                            aria-label="Include attachments: include attachment links in the markdown summary."
+                            title="Includes attachment links in the markdown summary.">?</button>
+                </div>
+                <div class="toggle-row">
+                    <input type="checkbox" id="include-images">
+                    <label for="include-images" class="toggle-row__label">Include images</label>
+                    <button type="button" class="help-tip"
+                            aria-label="Include images: include image links in the markdown summary."
+                            title="Includes image links in the markdown summary.">?</button>
                 </div>
             </div>
             <div class="form-actions form-actions--end" id="input-container-save-options">
@@ -110,14 +112,14 @@
                                     <option value="all">All</option>
                                 </select>
                             </div>
-                            <div class="toggle-row toggle-row--inline">
+                            <div class="toggle-row">
                                 <input type="checkbox" id="show-parent">
                                 <label for="show-parent" class="toggle-row__label">Show context</label>
                                 <button type="button" class="help-tip"
                                         aria-label="Show context: include the surrounding text from the comment where the link was found."
                                         title="Includes the surrounding text from the comment where the link was found.">?</button>
                             </div>
-                            <div class="toggle-row toggle-row--inline">
+                            <div class="toggle-row">
                                 <input type="checkbox" id="show-date">
                                 <label for="show-date" class="toggle-row__label">Show date</label>
                                 <button type="button" class="help-tip"
