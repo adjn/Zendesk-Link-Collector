@@ -212,6 +212,27 @@ function setIoStatus(msg) {
   el.classList.add("hidden");
 }
 
+// Set the inline-edit error message for a specific row. The error region
+// lives inside td.cell--pattern so it sits directly under the pattern input
+// and inherits the editing-row highlight. Empty msg hides the region.
+//
+// Earlier the inline editor reused setLinkPatternError, which wrote into
+// the Add Pattern section's error box — visually disconnected from the row
+// being edited. (Flagged by an earlier rubber-duck pass on the options
+// redesign as "errors render in Add form's alert region (visually
+// disconnected)".)
+function setRowEditError(tr, msg) {
+  if (!tr) return;
+  const el = tr.querySelector(".row-edit-error");
+  if (!el) return;
+  el.textContent = msg || "";
+  if (msg) {
+    el.classList.remove("hidden");
+  } else {
+    el.classList.add("hidden");
+  }
+}
+
 // Save a new link pattern from user input values.
 function saveLinkPatterns() {
   if (document.getElementById("title").value == "") {
@@ -378,33 +399,46 @@ function editLinkPatternInline(id) {
     titleInput.setAttribute("aria-label", "Title");
     tdTitle.appendChild(titleInput);
 
-    // Pattern cell — replace the <pre> with a mono text input.
+    // Pattern cell — replace the <pre> with a mono text input. Input and
+    // a row-local error region live inside a vertical flex stack so the
+    // input visibly slides up when the error appears, without changing
+    // the cell's overall height (other rows / sections don't reflow).
     const tdPattern = tr.querySelector(".cell--pattern");
     tdPattern.innerHTML = "";
+    const patternStack = document.createElement("div");
+    patternStack.className = "row-edit-pattern-stack";
     const patternInput = document.createElement("input");
     patternInput.type = "text";
     patternInput.value = option.pattern;
     patternInput.className = "row-edit-pattern mono";
     patternInput.setAttribute("aria-label", "Pattern");
     patternInput.setAttribute("spellcheck", "false");
-    tdPattern.appendChild(patternInput);
+    patternStack.appendChild(patternInput);
 
-    // Live regex validation on the pattern input itself: same debounce as
-    // the Add form. Errors render in the shared error region.
+    const rowError = document.createElement("div");
+    rowError.className = "row-edit-error alert hidden";
+    rowError.setAttribute("role", "status");
+    rowError.setAttribute("aria-live", "polite");
+    patternStack.appendChild(rowError);
+
+    tdPattern.appendChild(patternStack);
+
+    // Live regex validation on the pattern input itself: same 300ms
+    // debounce as the Add form. Errors render in the row-local region.
     let timer = null;
     patternInput.addEventListener("input", () => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         const v = patternInput.value;
         if (v === "") {
-          setLinkPatternError("");
+          setRowEditError(tr, "");
           return;
         }
         try {
           new RegExp(v);
-          setLinkPatternError("");
+          setRowEditError(tr, "");
         } catch (e) {
-          setLinkPatternError(`Invalid regex: ${e.message}`);
+          setRowEditError(tr, `Invalid regex: ${e.message}`);
         }
       }, 300);
     });
@@ -453,20 +487,18 @@ function editLinkPatternInline(id) {
     cancelButton.setAttribute("aria-label", `Cancel editing ${option.title}`);
     deleteButton.parentNode.replaceChild(cancelButton, deleteButton);
     cancelButton.addEventListener("click", () => {
-      setLinkPatternError("");
+      // Re-render drops the row-local error region naturally.
       loadLinkPatterns();
     });
 
     // Keyboard ergonomics: Enter on either text input commits, Escape on
-    // either cancels. Escape is a single global listener bound just to
-    // this row's lifetime to keep state simple.
+    // either cancels. Bound per-row; the next render replaces the inputs.
     const onKey = (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         saveLinkPatternInline(id);
       } else if (e.key === "Escape") {
         e.preventDefault();
-        setLinkPatternError("");
         loadLinkPatterns();
       }
     };
@@ -493,13 +525,13 @@ function saveLinkPatternInline(id) {
   ).checked;
 
   if (!newTitle || !newPattern) {
-    setLinkPatternError("Title and pattern are required.");
+    setRowEditError(tr, "Title and pattern are required.");
     return;
   }
   try {
     new RegExp(newPattern);
   } catch (e) {
-    setLinkPatternError(`Invalid regex: ${e.message}`);
+    setRowEditError(tr, `Invalid regex: ${e.message}`);
     return;
   }
 
@@ -514,10 +546,9 @@ function saveLinkPatternInline(id) {
       summaryType: newSummaryType,
       showDate: newShowDate,
     };
-    browser.storage.sync.set({ options: data.options }).then(() => {
-      setLinkPatternError("");
-      loadLinkPatterns();
-    });
+    // loadLinkPatterns re-renders the table and drops the row-local error
+    // region naturally — no explicit clear needed.
+    browser.storage.sync.set({ options: data.options }).then(loadLinkPatterns);
   });
 }
 

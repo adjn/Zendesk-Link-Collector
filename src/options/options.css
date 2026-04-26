@@ -365,17 +365,31 @@ select {
     gap: var(--s-2);
 }
 
-/* Error banner — shown below the add-pattern form when validation fails. */
+/* Error banner — shown below the add-pattern form when validation fails.
+   Sized small so it doesn't dominate the section. Section-level alerts
+   reserve their slot when empty (see the .hidden override below) so that
+   toggling the message doesn't shift the surrounding layout. */
 .alert {
-    margin-top: var(--s-3);
+    margin-top: var(--s-2);
     background: var(--danger-bg);
     color: var(--danger-fg);
     border: 1px solid rgba(248, 81, 73, 0.3);
     border-radius: var(--radius);
-    padding: var(--s-2) var(--s-3);
+    padding: var(--s-1) var(--s-2);
     font-size: 13px;
+    line-height: 1.4;
 }
 .hidden { display: none; }
+
+/* Slot reservation for section-level alerts only. The row-edit error has
+   its own slot-reservation strategy via the flex stack inside the pattern
+   cell — see .row-edit-pattern-stack below. Other .hidden consumers (image
+   tab toggles, etc.) are unaffected. */
+#link-patterns-error.hidden,
+#link-patterns-io-status.hidden {
+    visibility: hidden;
+    display: block;
+}
 
 /*
  * Tables — shared between the Examples sub-card and the Rules sub-card so
@@ -447,6 +461,33 @@ table#table-link-patterns tr.editing td.cell--pattern input[type="text"] {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+/* The pattern cell uses a fixed-height vertical flex stack so the input
+   stays centered when there's no error and visibly slides up when the
+   error appears beneath it — without changing the cell's overall height.
+   td-as-flex is unreliable cross-browser, so the stack lives in a wrapper
+   div appended in editLinkPatternInline. */
+.row-edit-pattern-stack {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--s-1);
+    min-height: 60px;
+}
+table#table-link-patterns tr.editing td.cell--pattern {
+    vertical-align: middle;
+}
+
+/* Row-local validation error — matches the pattern input's metrics
+   (padding, font-size, line-height, mono font) so the two boxes read as
+   the same shape; only the red colors from .alert distinguish them. */
+table#table-link-patterns tr.editing .row-edit-error {
+    margin-top: 0;
+    padding: 4px 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 /* Rules table specifics — hover, edit-row wash, action buttons. */
 /* Fixed layout + colgroup so the Pattern column gets the leftover width
    and small action columns stay narrow, regardless of cell content width. */
@@ -464,6 +505,12 @@ table#table-link-patterns th,
 table#table-link-patterns td {
     padding: var(--s-2);
     overflow: hidden;
+}
+/* Pre-size every body row so toggling the inline-edit error never changes
+   the row's outer height. 60px fits input + gap + error; with td padding
+   this matches the editing-with-error state. */
+table#table-link-patterns tbody td {
+    height: 60px;
 }
 table#table-link-patterns td.cell--pattern pre {
     white-space: pre-wrap;
