@@ -25,14 +25,14 @@ function injectIntoExistingZendeskTabs() {
         browser.scripting
           .executeScript({
             target: { tabId: tab.id },
-            // Use the polyfill here (not the lighter shim added in #94) so
-            // this PR stays focused on the injection fix; the polyfill→shim
-            // swap — including this call site — is #94's job. Both paths must
-            // load the same library, otherwise an already-open tab would have
-            // different `browser.*` semantics than a freshly-loaded one.
-            // `runAt: document_start` is matched via `injectImmediately` below.
+            // Match the manifest content_scripts injection: same shim,
+            // same load order, same runAt timing. The two injection
+            // paths (manifest auto-inject for new tabs, programmatic
+            // executeScript for already-open tabs) must agree, otherwise
+            // an already-open tab would have different `browser.*`
+            // semantics than a freshly-loaded one.
             files: [
-              "lib/browser-polyfill.min.js",
+              "lib/browser-shim.js",
               "content-scripts/contentscript.js",
             ],
             injectImmediately: true,
