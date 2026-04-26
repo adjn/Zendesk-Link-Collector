@@ -15,6 +15,7 @@
     --panel:         rgb(33, 38, 45);
     --panel-2:       rgb(40, 46, 54);
     --border:        rgb(55, 62, 71);
+    --border-soft:   rgb(48, 54, 61);
     --border-2:      rgb(73, 82, 94);
     --text:          rgb(201, 209, 217);
     --text-strong:   rgb(240, 246, 252);
@@ -44,15 +45,18 @@
 html, body { margin: 0; padding: 0; }
 
 body {
-    /* Subtle radial tint at the top gives the page a touch of warmth without
-       distracting from content. */
+    /* Top-left radial flare + a vertical gradient from near-black at the
+       top into the body color. Gives the page a warmer, more human feel
+       than a centered top tint — the light source is anchored to the
+       upper-left corner. */
     background:
-        radial-gradient(circle at 50% -10%, rgba(56, 139, 253, 0.10), transparent 40rem),
-        var(--bg);
+        radial-gradient(circle at top left, rgba(56, 139, 253, 0.12), transparent 24rem),
+        linear-gradient(180deg, rgb(13, 17, 23), var(--bg) 14rem);
     color: var(--text);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
+    /* 1rem/1.45 matches the B-console mock: slightly larger and airier than
+       the previous 14px/1.5. Specific font sizes elsewhere (table cells,
+       eyebrow, etc.) are explicit so they don't shift with this baseline. */
+    font: 1rem/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color-scheme: dark;
     accent-color: var(--accent);
     min-height: 100vh;
@@ -85,13 +89,24 @@ code, kbd, pre, .mono {
 }
 .eyebrow {
     margin: 0 0 var(--s-2);
-    color: var(--muted);
+    color: var(--accent);
     font-size: 12px;
-    letter-spacing: 0.06em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
-.page-header h1 { font-size: 28px; }
-.lede { margin: var(--s-2) 0 0; color: var(--muted); max-width: 64ch; }
+.page-header h1 {
+    margin: 0 0 var(--s-2);
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: 1;
+    color: var(--text-strong);
+}
+.lede {
+    margin: var(--s-2) 0 0;
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 64ch;
+}
 
 /* Main column of section cards. */
 main.shell {
@@ -100,16 +115,19 @@ main.shell {
     gap: var(--s-6);
 }
 
-/* Section card — the section element itself is the panel. */
+/* Section card — the section element itself is the panel. Mirrors the
+   B-console preview: subtle vertical gradient on the panel color, soft
+   border, lifted with a low-spread shadow, 12px corner radius. */
 .section {
-    background: var(--panel);
+    background: linear-gradient(180deg, var(--panel), rgb(28, 33, 40));
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
     padding: var(--s-5);
 }
 .section__head { margin-bottom: var(--s-4); }
-.section__head h2 { font-size: 16px; }
-.section__head p { margin: var(--s-1) 0 0; color: var(--muted); font-size: 13px; }
+.section__head h2 { font-size: 1.15rem; }
+.section__head p { margin: var(--s-1) 0 0; color: var(--muted); font-size: 0.88rem; }
 
 /* Stack of subcards inside a section. */
 .stack { display: flex; flex-direction: column; gap: var(--s-4); }
@@ -126,7 +144,7 @@ main.shell {
    the card border. The title still gets its own padding. */
 .subcard--flush { padding: 0; overflow: hidden; }
 .subcard__title {
-    font-size: 14px;
+    font-size: 1rem;
     font-weight: 600;
     margin-bottom: var(--s-3);
 }
