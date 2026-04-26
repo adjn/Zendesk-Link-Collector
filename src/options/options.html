@@ -126,10 +126,12 @@
                                         aria-label="Show date: include the timestamp of the comment that contained the link."
                                         title="Includes the timestamp of the comment that contained the link.">?</button>
                             </div>
-                        </div>
-
-                        <div class="form-actions form-actions--end">
-                            <button type="submit" id="button-save-link-patterns" class="btn btn--primary">Save Link Pattern</button>
+                            <!-- Save sits on the same inline row as the
+                                 Summary type / toggles, pushed to the
+                                 right via margin-left: auto. Keeps the
+                                 form compact instead of dropping the
+                                 button onto its own line below. -->
+                            <button type="submit" id="button-save-link-patterns" class="btn btn--primary form-inline-submit">Save Link Pattern</button>
                         </div>
 
                         <div id="container-link-patterns-error">

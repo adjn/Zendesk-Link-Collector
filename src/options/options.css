@@ -359,6 +359,15 @@ select {
 }
 
 .form-actions { margin-top: var(--s-4); }
+/* Submit button living inside .form-grid--inline (flex row): pushes
+   itself to the right edge so it shares the row with the toggles
+   instead of taking its own line below. The extra margin-top nudges
+   it lower than its row siblings so it doesn't crowd the Pattern
+   input above. */
+.form-inline-submit {
+    margin-left: auto;
+    margin-top: var(--s-4);
+}
 .form-actions--end {
     display: flex;
     justify-content: flex-end;
